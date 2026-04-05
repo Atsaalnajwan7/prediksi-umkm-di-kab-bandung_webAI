@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import numpy as np
 from sklearn.linear_model import LinearRegression
+import os  # Tambahkan import os untuk membaca environment variable
 
 app = Flask(__name__)
 
@@ -23,12 +24,18 @@ def index():
             try:
                 tahun = float(tahun_input)
                 prediksi = model.predict([[tahun]])
-                hasil = round(prediksi[0], 2)
-            except:
-                hasil = "Terjadi kesalahan"
+                # Mengakses elemen pertama dari array prediksi
+                hasil = round(float(prediksi[0]), 2)
+            except Exception as e:
+                hasil = f"Terjadi kesalahan: {str(e)}"
 
     return render_template('index.html', hasil=hasil)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Ambil PORT dari Railway, jika tidak ada (lokal) gunakan 5000
+    port = int(os.environ.get("PORT", 5000))
+    
+    # PENTING: host='0.0.0.0' agar bisa diakses dari luar container Railway
+    # debug=False direkomendasikan untuk tahap produksi/deployment
+    app.run(host='0.0.0.0', port=port, debug=False)
